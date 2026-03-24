@@ -14,8 +14,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "schemashift.helloWorld",
-        "title": "Hello World"
+        "command": "schemashift.generateMigration",
+        "title": "SchemaShift: Generate Migration"
       }
     ]
   },

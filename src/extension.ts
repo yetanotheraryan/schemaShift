@@ -1,26 +1,46 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import { getGitDiff } from './diff';
+import { extractAddedFields } from './parser';
+import { generateSQL } from './sql';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "schemashift" is now active!');
+	  const disposable = vscode.commands.registerCommand(
+    "schemashift.generateMigration",
+    async () => {
+      const tableName = await vscode.window.showInputBox({
+        prompt: "Enter table name",
+        placeHolder: "users",
+      });
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('schemashift.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from SchemaShift!');
-	});
+      if (!tableName) return;
 
-	context.subscriptions.push(disposable);
+      const diff = getGitDiff();
+	  console.log("Git Diff STart ------------:");
+	  console.log("Git Diff:", diff);
+	  console.log("Git Diff end ------------:");
+
+      const addedFields = extractAddedFields(diff);
+      const sql = generateSQL(tableName, addedFields);
+
+      // Show result
+      const doc = await vscode.workspace.openTextDocument({
+        content: sql,
+        language: "sql",
+      });
+
+      vscode.window.showTextDocument(doc);
+    }
+  );
+
+  context.subscriptions.push(disposable);
 }
+
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
